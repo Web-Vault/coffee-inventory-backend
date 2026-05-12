@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
@@ -20,22 +20,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Root Route
 @app.get("/")
 def read_root():
     return {"message": "Welcome to BrewIQ API"}
 
-# Simple API Test
 @app.get("/api/test")
 def test():
     return {"status": "API working"}
 
-# Database Session Test
-@app.get("/api/db-test")
-def db_test(db: Session = Depends(get_db)):
-    return {"db": "connected"}
-
-# Product Query Test
 @app.get("/api/products-test")
 def products_test(db: Session = Depends(get_db)):
     products = db.query(models.Product).all()
@@ -43,6 +35,38 @@ def products_test(db: Session = Depends(get_db)):
     return {
         "count": len(products)
     }
+
+# CREATE PRODUCT
+@app.post("/api/products")
+def create_product(product: schemas.ProductCreate, db: Session = Depends(get_db)):
+
+    existing_product = db.query(models.Product).filter(
+        models.Product.sku == product.sku
+    ).first()
+
+    if existing_product:
+        raise HTTPException(
+            status_code=400,
+            detail="Product already exists"
+        )
+
+    new_product = models.Product(**product.dict())
+
+    db.add(new_product)
+    db.commit()
+    db.refresh(new_product)
+
+    return new_product
+
+
+# GET ALL PRODUCTS
+@app.get("/api/products")
+def get_products(db: Session = Depends(get_db)):
+
+    products = db.query(models.Product).all()
+
+    return products
+
 
 if __name__ == "__main__":
     import uvicorn
