@@ -111,3 +111,72 @@ def parse_query(query: dict):
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
+
+    @app.get("/api/seed")
+    def seed_database(db: Session = Depends(get_db)):
+
+        # Prevent duplicate seeding
+        existing = db.query(models.Product).first()
+
+        if existing:
+            return {"message": "Database already seeded"}
+
+        sample_products = [
+
+            models.Product(
+                sku="COF001",
+                name="Coffee Beans",
+                category="Beverage",
+                category_color="brown",
+                branch="Main",
+                on_hand=50,
+                unit="kg",
+                forecast=100,
+                rule="Standard",
+                price="500",
+                status="OK",
+                status_color="green",
+                progress=80
+            ),
+
+            models.Product(
+                sku="MLK001",
+                name="Milk",
+                category="Dairy",
+                category_color="blue",
+                branch="Main",
+                on_hand=20,
+                unit="ltr",
+                forecast=40,
+                rule="Cold Storage",
+                price="60",
+                status="Low Stock",
+                status_color="amber",
+                progress=30
+            ),
+
+            models.Product(
+                sku="SUG001",
+                name="Sugar",
+                category="Sweetener",
+                category_color="white",
+                branch="Main",
+                on_hand=100,
+                unit="kg",
+                forecast=150,
+                rule="Dry Storage",
+                price="45",
+                status="OK",
+                status_color="green",
+                progress=90
+            )
+
+        ]
+
+        db.add_all(sample_products)
+
+        db.commit()
+
+        return {
+            "message": "Database seeded successfully"
+        }
