@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, String, Float, Text
-from backend.database import Base
+from database import Base
 
 class Stat(Base):
     __tablename__ = "stats"
