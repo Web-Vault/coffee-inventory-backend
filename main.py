@@ -7,11 +7,13 @@ import models
 import schemas
 import parser
 
+# Create FastAPI app
 app = FastAPI()
 
+# Create database tables automatically
 models.Base.metadata.create_all(bind=engine)
 
-# CORS
+# CORS Configuration
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -20,14 +22,22 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# ROOT ROUTE
 @app.get("/")
 def read_root():
     return {"message": "Welcome to BrewIQ API"}
 
+# SIMPLE TEST ROUTE
 @app.get("/api/test")
 def test():
     return {"status": "API working"}
 
+# DATABASE CONNECTION TEST
+@app.get("/api/db-test")
+def db_test(db: Session = Depends(get_db)):
+    return {"db": "connected"}
+
+# PRODUCTS COUNT TEST
 @app.get("/api/products-test")
 def products_test(db: Session = Depends(get_db)):
     products = db.query(models.Product).all()
@@ -36,9 +46,19 @@ def products_test(db: Session = Depends(get_db)):
         "count": len(products)
     }
 
+# GET ALL PRODUCTS
+@app.get("/api/products")
+def get_products(db: Session = Depends(get_db)):
+    products = db.query(models.Product).all()
+
+    return products
+
 # CREATE PRODUCT
 @app.post("/api/products")
-def create_product(product: schemas.ProductCreate, db: Session = Depends(get_db)):
+def create_product(
+    product: schemas.ProductCreate,
+    db: Session = Depends(get_db)
+):
 
     existing_product = db.query(models.Product).filter(
         models.Product.sku == product.sku
@@ -58,16 +78,36 @@ def create_product(product: schemas.ProductCreate, db: Session = Depends(get_db)
 
     return new_product
 
-
-# GET ALL PRODUCTS
-@app.get("/api/products")
-def get_products(db: Session = Depends(get_db)):
+# DASHBOARD ROUTE
+@app.get("/api/dashboard")
+def get_dashboard(db: Session = Depends(get_db)):
 
     products = db.query(models.Product).all()
 
-    return products
+    return {
+        "stats": [],
+        "operations": [],
+        "recentOperations": [],
+        "products": products,
+        "forecast": [],
+        "branches": [],
+        "aiReplies": []
+    }
 
+# PARSER TEST ROUTE
+@app.post("/api/parser/query")
+def parse_query(query: dict):
 
+    user_msg = query.get("message", "").strip()
+
+    if not user_msg:
+        return {"reply": "Please enter a message."}
+
+    return {
+        "reply": f"You said: {user_msg}"
+    }
+
+# RUN APP
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
