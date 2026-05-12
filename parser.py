@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from . import models
+import models
 
 def get_heuristic_reply(user_msg: str, db: Session):
     user_msg = user_msg.lower()
