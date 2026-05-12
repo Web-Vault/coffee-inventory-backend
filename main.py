@@ -9,6 +9,8 @@ import parser
 
 app = FastAPI()
 
+models.Base.metadata.create_all(bind=engine)
+
 # CORS
 app.add_middleware(
     CORSMiddleware,
