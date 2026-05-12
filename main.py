@@ -1,7 +1,12 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
+
 from database import get_db, engine, Base
+import models
+import schemas
+import parser
+
 app = FastAPI()
 
 app.add_middleware(
@@ -13,5 +18,5 @@ app.add_middleware(
 )
 
 @app.get("/")
-def home():
-    return {"message": "Backend running"}
+def read_root():
+    return {"message": "Welcome to BrewIQ API"}
