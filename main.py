@@ -107,13 +107,8 @@ def parse_query(query: dict):
         "reply": f"You said: {user_msg}"
     }
 
-# RUN APP
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
-
-    @app.get("/api/seed")
-    def seed_database(db: Session = Depends(get_db)):
+@app.get("/api/seed")
+def seed_database(db: Session = Depends(get_db)):
 
         # Prevent duplicate seeding
         existing = db.query(models.Product).first()
@@ -180,3 +175,8 @@ if __name__ == "__main__":
         return {
             "message": "Database seeded successfully"
         }
+
+# RUN APP
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
